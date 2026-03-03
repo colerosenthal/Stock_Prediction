@@ -57,10 +57,10 @@ df_features = extract_features()
 
 MODEL_INFO = {
         "endpoint": aws_endpoint,
-        "explainer": 'explainer.shap',
-        "pipeline": 'finalized_model.tar.gz',
-        "keys": ["GOOGL", "IBM", "DEXJPUS", "DEXUSUK", "SP500", "DJIA", "VIXCLS"],
-        "inputs": [{"name": k, "type": "number", "min": -1.0, "max": 1.0, "default": 0.0, "step": 0.01} for k in ["GOOGL", "IBM", "DEXJPUS", "DEXUSUK", "SP500", "DJIA", "VIXCLS"]]
+        "explainer": 'explainer_pair.shap',
+        "pipeline": 'finalized_pair_model.tar.gz',
+        "keys": ["AME", "AAPL"],
+        "inputs": [{"name": k, "type": "number", "min": -1.0, "max": 1.0, "default": 0.0, "step": 0.01} for k in ["AME", "AAPL"]]
 }
 
 def load_pipeline(_session, bucket, key):
@@ -120,6 +120,14 @@ def display_explanation(input_df, session, aws_bucket):
     top_feature = shap_values[0].feature_names[0]
     st.info(f"**Business Insight:** The most influential factor in this decision was **{top_feature}**.")
 
+best_pipline = load_pipeline(session, aws_bucket, 'sklearn-pipeline-deployment')
+preprocessing_pipeline = Pipeline(steps=best_pipeline.steps[:-2])
+input_df_transformed = preprocessing_pipeline.transform(input_df)
+feature_names = best_pipeline[1:4].get_feature_names_out()
+input_df_transformed = pd.DataFrame(input_df_transformed, columns=feature_names)
+shap_values = explainer(input_df_transformed)
+
+
 # Streamlit UI
 st.set_page_config(page_title="ML Deployment", layout="wide")
 st.title("👨‍💻 ML Deployment")
@@ -151,6 +159,7 @@ if submitted:
         display_explanation(input_df,session, aws_bucket)
     else:
         st.error(res)
+
 
 
 
