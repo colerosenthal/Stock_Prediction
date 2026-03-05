@@ -169,6 +169,7 @@ if submitted:
     # Prepare data (Stock predictor uses df_features, Bitcoin uses df_prices)
     base_df = df_prices
     input_df = pd.concat([base_df, pd.DataFrame([data_row], columns=base_df.columns)])
+    input_df = input_df.rename(columns={input_df.columns[0]: 'Close'})
     
     res, status = call_model_api(input_df)
     if status == 200:
@@ -176,6 +177,7 @@ if submitted:
         display_explanation(input_df,session, aws_bucket)
     else:
         st.error(res)
+
 
 
 
