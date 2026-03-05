@@ -68,8 +68,8 @@ MODEL_INFO = {
         "endpoint": aws_endpoint_bitcoin,
         "explainer": 'explainer_bitcoin.shap',
         "pipeline": 'finalized_bitcoin_model.tar.gz',
-        "keys": ["Close Price"],
-        "inputs": [{"name": "Close Price", "type": "number", "min": MIN_VAL, "max": MAX_VAL, "default": DEFAULT_VAL, "step": 100.0}]
+        "keys": ["Close"],
+        "inputs": [{"name": "Close", "type": "number", "min": MIN_VAL, "max": MAX_VAL, "default": DEFAULT_VAL, "step": 100.0}]
 }
 
 def load_pipeline(_session, bucket, key):
@@ -176,6 +176,7 @@ if submitted:
         display_explanation(input_df,session, aws_bucket)
     else:
         st.error(res)
+
 
 
 
