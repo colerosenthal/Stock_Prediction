@@ -105,12 +105,12 @@ def call_model_api(input_df):
     predictor = Predictor(
         endpoint_name=MODEL_INFO["endpoint"],
         sagemaker_session=sm_session,
-        serializer=NumpySerializer(),
-        deserializer=NumpyDeserializer() 
+        serializer=CSVSerializer(),
+        deserializer=JSONDeserializer()
     )
     
     try:
-        raw_pred = predictor.predict(input_df)
+        raw_pred = predictor.predict(input_df.values)
         pred_val = pd.DataFrame(raw_pred).values[-1][0]
         mapping = {-1: "SELL", 0: "HOLD", 1: "BUY"}
         return mapping.get(pred_val, pred_val), 200
@@ -176,6 +176,7 @@ if submitted:
         display_explanation(input_df,session, aws_bucket)
     else:
         st.error(res)
+
 
 
 
