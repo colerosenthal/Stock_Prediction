@@ -116,7 +116,7 @@ def display_explanation(input_df, session, aws_bucket, best_pipeline):
     shap_values = explainer(input_df_transformed)
     st.subheader("🔍 Decision Transparency (SHAP)")
     fig, ax = plt.subplots(figsize=(10, 4))
-    shap.plots.waterfall(shap_values[0], max_display=10)
+    shap.plots.waterfall(shap_values[0, :, 0], max_display=10)
     st.pyplot(fig)
     top_feature = shap_values[0].feature_names[0]
     st.info(f"**Business Insight:** The most influential factor in this decision was **{top_feature}**.")
