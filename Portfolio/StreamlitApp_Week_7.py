@@ -30,7 +30,7 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from src.feature_utils import extract_features
+from src.feature_utils import extract_features_pair
 
 # Access the secrets
 aws_id = st.secrets["aws_credentials"]["AWS_ACCESS_KEY_ID"]
@@ -40,7 +40,7 @@ aws_bucket = st.secrets["aws_credentials"]["AWS_BUCKET"]
 aws_endpoint = st.secrets["aws_credentials"]["AWS_ENDPOINT"]
 
 # AWS Session Management
-@st.cache_resource # Use this to avoid downloading the file every time the page refreshes
+@st.cache_resource
 def get_session(aws_id, aws_secret, aws_token):
     return boto3.Session(
         aws_access_key_id=aws_id,
@@ -53,37 +53,34 @@ session = get_session(aws_id, aws_secret, aws_token)
 sm_session = sagemaker.Session(boto_session=session)
 
 # Data & Model Configuration
-df_features = extract_features()
+df_features = extract_features_pair()
 
 MODEL_INFO = {
         "endpoint": aws_endpoint,
         "explainer": 'explainer_pair.shap',
         "pipeline": 'finalized_pair_model.tar.gz',
-        "keys": ["AME", "AAPL"],
-        "inputs": [{"name": k, "type": "number", "min": -1.0, "max": 1.0, "default": 0.0, "step": 0.01} for k in ["AME", "AAPL"]]
+        "keys": ["AXON", "JPM"],  # Updated to your pair
+        "inputs": [{"name": k, "type": "number", "min": -1.0, "max": 1.0, "default": 0.0, "step": 0.01} for k in ["AXON", "JPM"]]
 }
 
 def load_pipeline(_session, bucket, key):
     s3_client = _session.client('s3')
-    filename=MODEL_INFO["pipeline"]
+    filename = MODEL_INFO["pipeline"]
 
     s3_client.download_file(
         Filename=filename, 
         Bucket=bucket, 
-        Key= f"{key}/{os.path.basename(filename)}")
-        # Extract the .joblib file from the .tar.gz
+        Key=f"{key}/{os.path.basename(filename)}")
+
     with tarfile.open(filename, "r:gz") as tar:
         tar.extractall(path=".")
         joblib_file = [f for f in tar.getnames() if f.endswith('.joblib')][0]
 
-    # Load the full pipeline
     return joblib.load(f"{joblib_file}")
 
 def load_shap_explainer(_session, bucket, key, local_path):
     s3_client = _session.client('s3')
-    local_path = local_path
 
-    # Only download if it doesn't exist locally to save time
     if not os.path.exists(local_path):
         s3_client.download_file(Filename=local_path, Bucket=bucket, Key=key)
         
@@ -92,7 +89,6 @@ def load_shap_explainer(_session, bucket, key, local_path):
 
 # Prediction Logic
 def call_model_api(input_df):
-
     predictor = Predictor(
         endpoint_name=MODEL_INFO["endpoint"],
         sagemaker_session=sm_session,
@@ -108,25 +104,25 @@ def call_model_api(input_df):
         return f"Error: {str(e)}", 500
 
 # Local Explainability
-def display_explanation(input_df, session, aws_bucket):
+def display_explanation(input_df, session, aws_bucket, best_pipeline):
     explainer_name = MODEL_INFO["explainer"]
-    explainer = load_shap_explainer(session, aws_bucket, posixpath.join('explainer', explainer_name),os.path.join(tempfile.gettempdir(), explainer_name))
-    shap_values = explainer(input_df)
+    explainer = load_shap_explainer(session, aws_bucket, posixpath.join('explainer', explainer_name), os.path.join(tempfile.gettempdir(), explainer_name))
+    
+    preprocessing_pipeline = Pipeline(steps=best_pipeline.steps[:-2])
+    input_df_transformed = preprocessing_pipeline.transform(input_df)
+    feature_names = best_pipeline[1:4].get_feature_names_out()
+    input_df_transformed = pd.DataFrame(input_df_transformed, columns=feature_names)
+    
+    shap_values = explainer(input_df_transformed)
     st.subheader("🔍 Decision Transparency (SHAP)")
     fig, ax = plt.subplots(figsize=(10, 4))
     shap.plots.waterfall(shap_values[0], max_display=10)
     st.pyplot(fig)
-    # top feature   
     top_feature = shap_values[0].feature_names[0]
     st.info(f"**Business Insight:** The most influential factor in this decision was **{top_feature}**.")
 
-best_pipline = load_pipeline(session, aws_bucket, 'sklearn-pipeline-deployment')
-preprocessing_pipeline = Pipeline(steps=best_pipeline.steps[:-2])
-input_df_transformed = preprocessing_pipeline.transform(input_df)
-feature_names = best_pipeline[1:4].get_feature_names_out()
-input_df_transformed = pd.DataFrame(input_df_transformed, columns=feature_names)
-shap_values = explainer(input_df_transformed)
-
+# Load pipeline once at startup
+best_pipeline = load_pipeline(session, aws_bucket, 'sklearn-pipeline-deployment')
 
 # Streamlit UI
 st.set_page_config(page_title="ML Deployment", layout="wide")
@@ -147,19 +143,13 @@ with st.form("pred_form"):
     submitted = st.form_submit_button("Run Prediction")
 
 if submitted:
-
     data_row = [user_inputs[k] for k in MODEL_INFO["keys"]]
-    # Prepare data
     base_df = df_features
     input_df = pd.concat([base_df, pd.DataFrame([data_row], columns=base_df.columns)])
     
     res, status = call_model_api(input_df)
     if status == 200:
         st.metric("Prediction Result", res)
-        display_explanation(input_df,session, aws_bucket)
+        display_explanation(input_df, session, aws_bucket, best_pipeline)
     else:
         st.error(res)
-
-
-
-
