@@ -71,7 +71,8 @@ def extract_features():
     X = np.exp(X).cumsum()
     X.columns = [name + "_CR_Cum" for name in X.columns]
     
-    X = X.dropna()
+    X = X.ffill()
+    X = X.dropna(how='all')
     X = X.sort_index()
     X = X.reset_index(drop=True)
     return X
