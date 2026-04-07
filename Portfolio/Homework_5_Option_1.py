@@ -54,6 +54,7 @@ sm_session = sagemaker.Session(boto_session=session)
 
 # Data & Model Configuration
 df_features = extract_features()
+st.write(f"Data shape: {df_features.shape}")
 
 MODEL_INFO = {
         "endpoint": aws_endpoint,
@@ -129,18 +130,11 @@ with st.form("pred_form"):
     submitted = st.form_submit_button("Run Prediction")
 
 if submitted:
-    # Get the historical data for all 496 stocks
     base_df = df_features
-    
-    # Take the last row as our base input
     last_row = base_df.iloc[[-1]].copy()
-    
-    # Replace the user inputted stock values in the last row
     for k in MODEL_INFO["keys"]:
         if k in last_row.columns:
             last_row[k] = user_inputs[k]
-    
-    # Send the full dataframe with the last row replaced
     input_df = pd.concat([base_df.iloc[:-1], last_row])
     
     res, status = call_model_api(input_df)
