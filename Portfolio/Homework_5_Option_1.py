@@ -40,7 +40,7 @@ aws_bucket = st.secrets["aws_credentials"]["AWS_BUCKET"]
 aws_endpoint = st.secrets["aws_credentials"]["AWS_ENDPOINT"]
 
 # AWS Session Management
-@st.cache_resource # Use this to avoid downloading the file every time the page refreshes
+@st.cache_resource
 def get_session(aws_id, aws_secret, aws_token):
     return boto3.Session(
         aws_access_key_id=aws_id,
@@ -66,40 +66,31 @@ MODEL_INFO = {
 def load_pipeline(_session, bucket, key):
     s3_client = _session.client('s3')
     filename=MODEL_INFO["pipeline"]
-
     s3_client.download_file(
         Filename=filename, 
         Bucket=bucket, 
         Key= f"{key}/{os.path.basename(filename)}")
-        # Extract the .joblib file from the .tar.gz
     with tarfile.open(filename, "r:gz") as tar:
         tar.extractall(path=".")
         joblib_file = [f for f in tar.getnames() if f.endswith('.joblib')][0]
-
-    # Load the full pipeline
     return joblib.load(f"{joblib_file}")
 
 def load_shap_explainer(_session, bucket, key, local_path):
     s3_client = _session.client('s3')
     local_path = local_path
-
-    # Only download if it doesn't exist locally to save time
     if not os.path.exists(local_path):
         s3_client.download_file(Filename=local_path, Bucket=bucket, Key=key)
-        
     with open(local_path, "rb") as f:
         return shap.Explainer.load(f)
 
 # Prediction Logic
 def call_model_api(input_df):
-
     predictor = Predictor(
         endpoint_name=MODEL_INFO["endpoint"],
         sagemaker_session=sm_session,
         serializer=NumpySerializer(),
         deserializer=NumpyDeserializer() 
     )
-
     try:
         raw_pred = predictor.predict(input_df)
         pred_val = pd.DataFrame(raw_pred).values[-1][0]
@@ -116,7 +107,6 @@ def display_explanation(input_df, session, aws_bucket):
     fig, ax = plt.subplots(figsize=(10, 4))
     shap.plots.waterfall(shap_values[0], max_display=10)
     st.pyplot(fig)
-    # top feature   
     top_feature = shap_values[0].feature_names[0]
     st.info(f"**Business Insight:** The most influential factor in this decision was **{top_feature}**.")
 
@@ -139,11 +129,19 @@ with st.form("pred_form"):
     submitted = st.form_submit_button("Run Prediction")
 
 if submitted:
-
-    data_row = [user_inputs[k] for k in MODEL_INFO["keys"]]
-    # Prepare data
+    # Get the historical data for all 496 stocks
     base_df = df_features
-    input_df = pd.concat([base_df, pd.DataFrame([data_row], columns=base_df.columns)])
+    
+    # Take the last row as our base input
+    last_row = base_df.iloc[[-1]].copy()
+    
+    # Replace the user inputted stock values in the last row
+    for k in MODEL_INFO["keys"]:
+        if k in last_row.columns:
+            last_row[k] = user_inputs[k]
+    
+    # Send the full dataframe with the last row replaced
+    input_df = pd.concat([base_df.iloc[:-1], last_row])
     
     res, status = call_model_api(input_df)
     if status == 200:
