@@ -9,7 +9,10 @@ import os
 import sys
 import json #
 
-from src.Custom_Classes import FeatureEngineer
+try:
+    from src.Custom_Classes import FeatureEngineer
+except ImportError:
+    from Custom_Classes import FeatureEngineer
 
 
 def extract_features():
