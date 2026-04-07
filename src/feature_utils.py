@@ -90,7 +90,7 @@ def convert_input_pca_regression(request_body, request_content_type):
     
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.abspath(os.path.join(current_dir, '..'))
-    file_path = os.path.join(project_root, 'Portfolio/SP500Data.csv')
+    file_path = os.path.join(project_root, 'Portfolio/SP500Data (6).csv')
 
     print(f"Looking for file at: {file_path}")
     print(f"File exists: {os.path.exists(file_path)}")
