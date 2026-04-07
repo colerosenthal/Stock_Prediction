@@ -59,8 +59,8 @@ MODEL_INFO = {
         "endpoint": aws_endpoint,
         "explainer": 'explainer_pca.shap',
         "pipeline": 'finalized_pca_model.tar.gz',
-        "keys": ["INTC", "AVGO", "TSM", "DEXJPUS", "DEXUSUK", "SP500", "DJIA", "VIXCLS"],
-        "inputs": [{"name": k, "type": "number", "min": -1.0, "max": 1.0, "default": 0.0, "step": 0.01} for k in ["INTC", "AVGO", "TSM", "DEXJPUS", "DEXUSUK", "SP500", "DJIA", "VIXCLS"]]
+        "keys": ["INTC_CR_Cum", "AVGO_CR_Cum", "TSM_CR_Cum", "NVDA_CR_Cum", "MSFT_CR_Cum"],
+        "inputs": [{"name": k, "type": "number", "min": -1.0, "max": 1.0, "default": 0.0, "step": 0.01} for k in ["INTC_CR_Cum", "AVGO_CR_Cum", "TSM_CR_Cum", "NVDA_CR_Cum", "MSFT_CR_Cum"]]
 }
 
 def load_pipeline(_session, bucket, key):
