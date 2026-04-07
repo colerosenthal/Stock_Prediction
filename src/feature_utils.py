@@ -92,6 +92,8 @@ def convert_input_pca_regression(request_body, request_content_type):
     project_root = os.path.abspath(os.path.join(current_dir, '..'))
     file_path = os.path.join(project_root, 'Portfolio/SP500Data.csv')
 
+    print(f"Looking for file at: {file_path}")
+    print(f"File exists: {os.path.exists(file_path)}")
     dataset = pd.read_csv(file_path,index_col=0)
 
     target = 'AMZN'
