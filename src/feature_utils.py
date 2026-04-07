@@ -4,15 +4,8 @@ import datetime
 import yfinance as yf
 import pandas_datareader.data as web
 import requests
-#from datetime import datetime, timedelta
 import os
 import sys
-
-import os
-import sys
-
-
-# ... continue with your script ...
 
 def extract_features():
 
@@ -20,34 +13,68 @@ def extract_features():
     
     START_DATE = (datetime.date.today() - datetime.timedelta(days=365)).strftime("%Y-%m-%d")
     END_DATE = datetime.date.today().strftime("%Y-%m-%d")
-    stk_tickers = ['MSFT', 'IBM', 'GOOGL']
-    ccy_tickers = ['DEXJPUS', 'DEXUSUK']
-    idx_tickers = ['SP500', 'DJIA', 'VIXCLS']
     
+    stk_tickers = ['AOS','ABT','ABBV','ACN','ADBE','AES','AFL','A','APD','ABNB',
+    'AKAM','ALB','ARE','ALGN','ALLE','LNT','ALL','GOOGL','GOOG','MO',
+    'AMZN','AMCR','AEE','AEP','AXP','AIG','AMT','AWK','AMP','AME',
+    'AMGN','APH','ADI','ANSS','AON','APA','APO','AAPL','AMAT','APTV',
+    'ACGL','ADM','ANET','AJG','AIZ','T','ATO','ADSK','ADP','AZO',
+    'AVB','AVY','AXON','BKR','BALL','BAC','BAX','BDX','BBY','TECH',
+    'BIIB','BLK','BX','BK','BA','BKNG','BWA','BSX','BMY','AVGO',
+    'BR','BRO','BLDR','BG','BXP','CHRW','CDNS','CZR','CPT','CPB',
+    'COF','CAH','KMX','CCL','CARR','CAT','CBOE','CBRE','CDW','CE',
+    'COR','CNC','CNP','CF','CRL','SCHW','CHTR','CVX','CMG','CB',
+    'CHD','CI','CINF','CTAS','CSCO','C','CFG','CLX','CME','CMS',
+    'KO','CTSH','CL','CMCSA','CAG','COP','ED','STZ','CEG','COO',
+    'CPRT','GLW','CPAY','CTVA','CSGP','COST','CTRA','CRWD','CCI','CSX',
+    'CMI','CVS','DHR','DRI','DVA','DAY','DECK','DE','DELL','DAL',
+    'DVN','DXCM','FANG','DLR','DFS','DG','DLTR','D','DPZ','DOV',
+    'DOW','DHI','DTE','DUK','DD','EMN','ETN','EBAY','ECL','EIX',
+    'EW','EA','ELV','EMR','ENPH','ETR','EOG','EPAM','EQT','EFX',
+    'EQIX','EQR','ERIE','ESS','EL','EG','EVRG','ES','EXC','EXPE',
+    'EXPD','EXR','XOM','FFIV','FDS','FICO','FAST','FRT','FDX','FIS',
+    'FITB','FSLR','FE','FI','FMC','F','FTNT','FTV','FOXA','FOX',
+    'BEN','FCX','GRMN','IT','GE','GEHC','GEV','GEN','GNRC','GD',
+    'GIS','GM','GPC','GILD','GPN','GL','GDDY','GS','HAL','HIG',
+    'HAS','HCA','DOC','HSIC','HSY','HES','HPE','HLT','HOLX','HD',
+    'HON','HRL','HST','HWM','HPQ','HUBB','HUM','HBAN','HII','IBM',
+    'IEX','IDXX','ITW','INCY','IR','PODD','INTC','ICE','IFF','IP',
+    'IPG','INTU','ISRG','IVZ','INVH','IQV','IRM','JBHT','JBL','JKHY',
+    'J','JNJ','JCI','JPM','JNPR','K','KVUE','KDP','KEY','KEYS',
+    'KMB','KIM','KMI','KKR','KLAC','KHC','KR','LHX','LH','LRCX',
+    'LW','LVS','LDOS','LEN','LII','LLY','LIN','LYV','LKQ','LMT',
+    'L','LOW','LULU','LYB','MTB','MPC','MKTX','MAR','MMC','MLM',
+    'MAS','MA','MTCH','MKC','MCD','MCK','MDT','MRK','META','MET',
+    'MTD','MGM','MCHP','MU','MSFT','MAA','MRNA','MHK','MOH','TAP',
+    'MDLZ','MPWR','MNST','MCO','MS','MOS','MSI','MSCI','NDAQ','NTAP',
+    'NFLX','NEM','NWSA','NWS','NEE','NKE','NI','NDSN','NSC','NTRS',
+    'NOC','NCLH','NRG','NUE','NVDA','NVR','NXPI','ORLY','OXY','ODFL',
+    'OMC','ON','OKE','ORCL','OTIS','PCAR','PKG','PLTR','PANW','PARA',
+    'PH','PAYX','PAYC','PYPL','PNR','PEP','PFE','PCG','PM','PSX',
+    'PNW','PNC','POOL','PPG','PPL','PFG','PG','PGR','PLD','PRU',
+    'PEG','PTC','PSA','PHM','PWR','QCOM','DGX','RL','RJF','RTX',
+    'O','REG','REGN','RF','RSG','RMD','RVTY','ROK','ROL','ROP',
+    'ROST','RCL','SPGI','CRM','SBAC','SLB','STX','SRE','NOW','SHW',
+    'SPG','SWKS','SJM','SW','SNA','SOLV','SO','LUV','SWK','SBUX',
+    'STT','STLD','STE','SYK','SMCI','SYF','SNPS','SYY','TMUS','TROW',
+    'TTWO','TPR','TRGP','TGT','TEL','TDY','TFX','TER','TSLA','TXN',
+    'TPL','TXT','TMO','TJX','TSCO','TT','TDG','TRV','TRMB','TFC',
+    'TYL','TSN','USB','UBER','UDR','ULTA','UNP','UAL','UPS','URI',
+    'UNH','UHS','VLO','VTR','VLTO','VRSN','VRSK','VZ','VRTX','VTRS',
+    'VICI','V','VST','VMC','WRB','GWW','WAB','WBA','WMT','DIS',
+    'WBD','WM','WAT','WEC','WFC','WELL','WST','WDC','WY','WMB',
+    'WTW','WDAY','WYNN','XEL','XYL','YUM']
+
     stk_data = yf.download(stk_tickers, start=START_DATE, end=END_DATE, auto_adjust=False)
-    #stk_data = web.DataReader(stk_tickers, 'yahoo')
-    ccy_data = web.DataReader(ccy_tickers, 'fred', start=START_DATE, end=END_DATE)
-    idx_data = web.DataReader(idx_tickers, 'fred', start=START_DATE, end=END_DATE)
-
-    Y = np.log(stk_data.loc[:, ('Adj Close', 'MSFT')]).diff(return_period).shift(-return_period)
-    Y.name = Y.name[-1]+'_Future'
     
-    X1 = np.log(stk_data.loc[:, ('Adj Close', ('GOOGL', 'IBM'))]).diff(return_period)
-    X1.columns = X1.columns.droplevel()
-    X2 = np.log(ccy_data).diff(return_period)
-    X3 = np.log(idx_data).diff(return_period)
-
-    X = pd.concat([X1, X2, X3], axis=1)
+    X = np.log(stk_data.loc[:, 'Adj Close']).diff(return_period)
+    X = np.exp(X).cumsum()
+    X.columns = [name + "_CR_Cum" for name in X.columns]
     
-    dataset = pd.concat([Y, X], axis=1).dropna().iloc[::return_period, :]
-    Y = dataset.loc[:, Y.name]
-    X = dataset.loc[:, X.columns]
-    dataset.index.name = 'Date'
-    #dataset.to_csv(r"./test_data.csv")
-    features = dataset.sort_index()
-    features = features.reset_index(drop=True)
-    features = features.iloc[:,1:]
-    return features
+    X = X.dropna()
+    X = X.sort_index()
+    X = X.reset_index(drop=True)
+    return X
 
 def extract_features_pair():
 
@@ -71,21 +98,9 @@ def extract_features_pair():
     features = features.reset_index(drop=True)
     return features
 
-def get_bitcoin_historical_prices(days = 60):
-    
-    BASE_URL = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
-    
-    params = {
-        'vs_currency': 'usd',
-        'days': days,
-        'interval': 'daily' # Ensure we get daily granularity
-    }
-    response = requests.get(BASE_URL, params=params)
-    data = response.json()
-    prices = data['prices']
-    df = pd.DataFrame(prices, columns=['Timestamp', 'Close Price (USD)'])
-    df['Date'] = pd.to_datetime(df['Timestamp'], unit='ms').dt.normalize()
-    df = df[['Date', 'Close Price (USD)']].set_index('Date')
+def get_bitcoin_historical_prices(days=60):
+    import yfinance as yf
+    df = yf.download('BTC-USD', period=f'{days}d', interval='1d', auto_adjust=True)
+    df = df[['Close']].copy()
+    df.index.name = 'Date'
     return df
-
-
