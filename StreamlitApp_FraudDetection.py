@@ -177,9 +177,9 @@ def load_pipeline(_session, bucket):
 def display_shap(input_df, session, bucket):
     try:
         explainer = load_shap_explainer(session, bucket)
-        input_array = input_df.values.astype(float)
-        shap_values = explainer.shap_values(input_array)
-        
+        input_array = np.array(input_df.values.astype(float))
+        shap_values = explainer.shap_values(X=input_array)
+
         st.subheader("🔍 Decision Transparency (SHAP Waterfall Plot)")
         fig, ax = plt.subplots(figsize=(10, 5))
         shap.summary_plot(shap_values, input_df, show=False, plot_type='bar')
@@ -195,7 +195,7 @@ def display_shap(input_df, session, bucket):
         )
     except Exception as e:
         st.warning(f"SHAP explanation unavailable: {e}")
-
+        
 # ══════════════════════════════════════════════════════════════════════════════
 # STREAMLIT UI
 # ══════════════════════════════════════════════════════════════════════════════
