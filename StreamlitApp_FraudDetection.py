@@ -177,7 +177,8 @@ def load_pipeline(_session, bucket):
 def display_shap(input_df, session, bucket):
     try:
         explainer   = load_shap_explainer(session, bucket)
-        shap_values = explainer(input_df)
+        input_array = input_df.values
+        shap_values = explainer(input_array)
 
         st.subheader("🔍 Decision Transparency (SHAP Waterfall Plot)")
         fig, ax = plt.subplots(figsize=(10, 5))
