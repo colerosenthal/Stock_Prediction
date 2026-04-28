@@ -1,0 +1,11 @@
+numpy
+pandas
+scikit-learn==1.3.2
+lightgbm
+shap
+boto3
+sagemaker
+matplotlib
+joblib
+streamlit
+imbalanced-learn
