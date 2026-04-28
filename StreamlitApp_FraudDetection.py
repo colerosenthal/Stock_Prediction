@@ -184,7 +184,12 @@ def display_shap(input_df, session, bucket):
 
         st.subheader("🔍 Decision Transparency (SHAP Waterfall Plot)")
         fig, ax = plt.subplots(figsize=(10, 5))
-        shap.summary_plot(shap_values, input_df, show=False, plot_type='bar')
+        shap.waterfall_plot(shap.Explanation(
+            values=shap_values[0],
+            base_values=explainer.expected_value,
+            data=input_array[0],
+            feature_names=list(input_df.columns)
+        ), show=False)
         plt.tight_layout()
         st.pyplot(fig)
 
