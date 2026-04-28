@@ -176,9 +176,11 @@ def load_pipeline(_session, bucket):
 # ── SHAP waterfall display ───────────────────────────────────────────────────
 def display_shap(input_df, session, bucket):
     try:
-        explainer = load_shap_explainer(session, bucket)
+        # Recreate explainer directly from the loaded model
+        model = load_pipeline(session, bucket)
+        explainer = shap.TreeExplainer(model)
         input_array = np.array(input_df.values.astype(float))
-        shap_values = explainer.shap_values(X=input_array)
+        shap_values = explainer.shap_values(input_array)
 
         st.subheader("🔍 Decision Transparency (SHAP Waterfall Plot)")
         fig, ax = plt.subplots(figsize=(10, 5))
