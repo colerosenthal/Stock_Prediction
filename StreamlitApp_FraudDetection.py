@@ -176,17 +176,17 @@ def load_pipeline(_session, bucket):
 # ── SHAP waterfall display ───────────────────────────────────────────────────
 def display_shap(input_df, session, bucket):
     try:
-        explainer   = load_shap_explainer(session, bucket)
-        input_array = input_df.values
-        shap_values = explainer(input_array)
-
+        explainer = load_shap_explainer(session, bucket)
+        input_array = input_df.values.astype(float)
+        shap_values = explainer.shap_values(input_array)
+        
         st.subheader("🔍 Decision Transparency (SHAP Waterfall Plot)")
         fig, ax = plt.subplots(figsize=(10, 5))
-        shap.plots.waterfall(shap_values[0], show=False)
+        shap.summary_plot(shap_values, input_df, show=False, plot_type='bar')
         plt.tight_layout()
         st.pyplot(fig)
 
-        top_idx     = int(np.abs(shap_values[0].values).argmax())
+        top_idx = int(np.abs(shap_values[0]).argmax())
         top_feature = (feature_names[top_idx]
                        if top_idx < len(feature_names) else str(top_idx))
         st.info(
